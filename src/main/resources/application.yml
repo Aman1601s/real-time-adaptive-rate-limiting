@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: adaptive-ratelimiter
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+      retries: 1
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: latest
+      group-id: ${spring.application.name}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+ratelimiter:
+  load:
+    soft-throttle-threshold: 0.75
+    hard-reject-threshold: 0.95
+  kafka:
+    rule-updates-topic: rate-limit-rule-updates.v1
+    decision-topic: rate-limit-decisions.v1
+    fallback-queue-capacity: 10000
+    retry-batch-size: 200
+    retry-delay-ms: 500
